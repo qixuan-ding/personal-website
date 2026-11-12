@@ -1,16 +1,29 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import WritingList from "../components/WritingList.astro";
+import { getPublishedWriting } from "../lib/writing";
+
+const essays = await getPublishedWriting();
+const latestEssays = essays.slice(0, 5);
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>Astro</h1>
-  </body>
-</html>
+<BaseLayout>
+  <header class="introduction">
+    <h1>Qixuan Ding</h1>
+    <p>
+      This is a page about me, my projects, and mainly my lucid thoughts about
+      life.
+    </p>
+  </header>
+
+  <section aria-labelledby="writing-heading">
+    <h2 id="writing-heading">Latest writing</h2>
+    <WritingList essays={latestEssays} />
+
+    {essays.length > 0 && (
+      <a class="view-all-writing" href="/writing">
+        View all writing
+      </a>
+    )}
+  </section>
+</BaseLayout>

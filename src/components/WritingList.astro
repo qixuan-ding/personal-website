@@ -1,0 +1,35 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  essays: CollectionEntry<"writing">[];
+}
+
+const { essays } = Astro.props;
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
+---
+
+{essays.length === 0 ? (
+  <p class="muted">Writing coming soon</p>
+) : (
+  <ul class="writing-list">
+    {essays.map((essay) => {
+      const displayedDate = essay.data.updatedAt ?? essay.data.publishedAt;
+
+      return (
+        <li>
+          <a href={`/writing/${essay.id}`}>{essay.data.title}</a>
+          <time class="muted" datetime={displayedDate}>
+            {dateFormatter.format(new Date(displayedDate))}
+          </time>
+        </li>
+      );
+    })}
+  </ul>
+)}

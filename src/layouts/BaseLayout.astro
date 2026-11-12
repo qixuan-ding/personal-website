@@ -1,0 +1,101 @@
+---
+import "../styles/global.css";
+import MoodSwitcher from "../components/MoodSwitcher.astro";
+import Clouds from "../components/Clouds.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  reading?: boolean;
+}
+
+const {
+  title = "Qixuan Ding",
+  description = "About myself and some thoughts",
+  reading = false,
+} = Astro.props;
+
+const pathname = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+const links = [
+  { href: "/", label: "Home" },
+  { href: "/writing", label: "Writing" },
+  { href: "/about", label: "About" },
+];
+
+function isActive(href: string) {
+  return href === "/"
+    ? pathname === "/"
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+
+    <script is:inline>
+      (() => {
+        let mood = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "obsidian"
+          : "cloudy";
+
+        try {
+          const saved = localStorage.getItem("site-mood");
+
+          if (saved === "cloudy" || saved === "obsidian") {
+            mood = saved;
+          }
+        } catch {
+          // Use the device preference when storage is unavailable.
+        }
+
+        document.documentElement.dataset.mood = mood;
+      })();
+    </script>
+  </head>
+  <body>
+    <Clouds />
+
+    <a class="skip-link" href="#main-content">
+      Skip to content
+    </a>
+
+    <header class="site-header">
+      <nav class="navigation" aria-label="Main navigation">
+        <a class="site-name" href="/">
+          Qixuan Ding
+        </a>
+
+        <div class="navigation-actions">
+          <ul class="navigation-links">
+            {links.map(({ href, label }) => (
+              <li>
+                <a
+                  href={href}
+                  aria-current={isActive(href) ? "page" : undefined}
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <MoodSwitcher />
+        </div>
+      </nav>
+    </header>
+
+    <main
+      id="main-content"
+      class:list={["page", { "page--reading": reading }]}
+      tabindex="-1"
+    >
+      <slot />
+    </main>
+  </body>
+</html>

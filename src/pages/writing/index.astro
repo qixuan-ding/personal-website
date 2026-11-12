@@ -1,0 +1,15 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import WritingList from "../../components/WritingList.astro";
+import { getPublishedWriting } from "../../lib/writing";
+
+const essays = await getPublishedWriting();
+---
+
+<BaseLayout
+  title="Writing | Qixuan Ding"
+  description="Life experiences and thoughts by Qixuan Ding."
+>
+  <h1>Writing</h1>
+  <WritingList essays={essays} />
+</BaseLayout>

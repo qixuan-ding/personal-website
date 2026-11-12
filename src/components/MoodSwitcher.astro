@@ -1,0 +1,106 @@
+<div class="mood-switcher" role="group" aria-label="Site mood">
+  <button
+    type="button"
+    data-mood-choice="cloudy"
+    aria-label="Cloudy mood"
+    aria-pressed="false"
+    title="Cloudy"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M6.5 18a4.5 4.5 0 0 1-.4-9A6 6 0 0 1 17.7 8a5 5 0 0 1-.7 10Z"></path>
+    </svg>
+  </button>
+
+  <button
+    type="button"
+    data-mood-choice="obsidian"
+    aria-label="Obsidian mood"
+    aria-pressed="false"
+    title="Obsidian"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="m12 2 7 6 2 9-9 5-8-6 2-9Z"></path>
+      <path d="m12 2-3 9 3 11 4-10-4-10ZM6 7l3 4-5 5m15-8-3 4 5 5"></path>
+    </svg>
+  </button>
+</div>
+
+<script>
+  type Mood = "cloudy" | "obsidian";
+
+  const root = document.documentElement;
+  const systemPreference = window.matchMedia("(prefers-color-scheme: dark)");
+  const buttons =
+    document.querySelectorAll<HTMLButtonElement>("[data-mood-choice]");
+
+  let hasManualChoice = false;
+
+  try {
+    const saved = localStorage.getItem("site-mood");
+    hasManualChoice = saved === "cloudy" || saved === "obsidian";
+  } catch {
+    // Switching still works when browser storage is unavailable.
+  }
+
+  function applyMood(mood: Mood) {
+    root.dataset.mood = mood;
+
+    buttons.forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.moodChoice === mood),
+      );
+    });
+  }
+
+  const initialMood = root.dataset.mood;
+
+  applyMood(
+    initialMood === "cloudy" || initialMood === "obsidian"
+      ? initialMood
+      : systemPreference.matches
+        ? "obsidian"
+        : "cloudy",
+  );
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const mood = button.dataset.moodChoice;
+
+      if (mood !== "cloudy" && mood !== "obsidian") return;
+
+      hasManualChoice = true;
+      applyMood(mood);
+
+      try {
+        localStorage.setItem("site-mood", mood);
+      } catch {
+        // Keep the selected mood for this page even without storage.
+      }
+    });
+  });
+
+  systemPreference.addEventListener("change", (event) => {
+    if (!hasManualChoice) {
+      applyMood(event.matches ? "obsidian" : "cloudy");
+    }
+  });
+</script>
