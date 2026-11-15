@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # Local, unpublished writing
 /drafts/
+
+# Local agent instructions
+/AGENTS.md
