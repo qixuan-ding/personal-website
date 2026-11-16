@@ -28,3 +28,7 @@ pnpm-debug.log*
 
 # Local agent instructions
 /AGENTS.md
+
+# Local Cloudflare development data and secrets
+.wrangler/
+.dev.vars*

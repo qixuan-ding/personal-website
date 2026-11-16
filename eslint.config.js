@@ -5,7 +5,13 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", ".astro/**", "node_modules/**", "drafts/**"],
+    ignores: [
+      "dist/**",
+      ".astro/**",
+      ".wrangler/**",
+      "node_modules/**",
+      "drafts/**",
+    ],
   },
   {
     ...js.configs.recommended,
@@ -36,5 +42,13 @@ export default [
     languageOptions: {
       globals: globals.browser,
     },
+  },
+  {
+    files: ["worker/**/*.js"],
+    languageOptions: { globals: globals.serviceworker },
+  },
+  {
+    files: ["tests/**/*.mjs"],
+    languageOptions: { globals: globals.node },
   },
 ];

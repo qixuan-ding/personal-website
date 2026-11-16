@@ -3,3 +3,4 @@ dist/
 .astro/
 drafts/
 package-lock.json
+.wrangler/

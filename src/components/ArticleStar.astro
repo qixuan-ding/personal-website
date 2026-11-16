@@ -1,0 +1,203 @@
+---
+const articleId = Astro.params.id;
+---
+
+<aside class="article-star" aria-label="Article reactions">
+  <button
+    class="article-star-button"
+    type="button"
+    data-article-star={articleId}
+    aria-label="Star this article"
+    aria-pressed="false"
+    disabled
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="m12 3 2.8 5.7 6.3.9-4.5 4.4 1.1 6.2-5.7-3-5.7 3 1.1-6.2-4.5-4.4 6.3-.9Z"></path>
+    </svg>
+    <span data-star-label>Star this article</span>
+    <span class="article-star-count" data-star-count aria-hidden="true">
+      —
+    </span>
+  </button>
+  <span class="article-star-feedback" data-star-feedback role="status">
+    Loading stars…
+  </span>
+  <noscript>Enable JavaScript to star this article.</noscript>
+</aside>
+
+<script>
+  interface StarState {
+    count: number;
+    starred: boolean;
+  }
+
+  const button = document.querySelector<HTMLButtonElement>(
+    "[data-article-star]",
+  );
+  const label = document.querySelector<HTMLElement>("[data-star-label]");
+  const count = document.querySelector<HTMLElement>("[data-star-count]");
+  const feedback = document.querySelector<HTMLElement>("[data-star-feedback]");
+
+  if (button && label && count && feedback && button.dataset.articleStar) {
+    const endpoint = `/api/stars/${encodeURIComponent(button.dataset.articleStar)}`;
+    let state: StarState | null = null;
+
+    function render(next: StarState) {
+      state = next;
+      button!.setAttribute("aria-pressed", String(next.starred));
+      button!.setAttribute("aria-label", "Star this article");
+      label!.textContent = next.starred ? "Starred" : "Star this article";
+      count!.textContent = new Intl.NumberFormat("en-US").format(next.count);
+    }
+
+    async function sync(update?: boolean) {
+      button!.disabled = true;
+      button!.setAttribute("aria-busy", "true");
+      feedback!.classList.remove("is-error");
+
+      try {
+        const response = await fetch(endpoint, {
+          method: update === undefined ? "GET" : "PUT",
+          credentials: "same-origin",
+          cache: "no-store",
+          signal: AbortSignal.timeout(10000),
+          ...(update === undefined
+            ? {}
+            : {
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ starred: update }),
+              }),
+        });
+        if (!response.ok) throw new Error("Stars request failed");
+
+        const next: StarState = await response.json();
+        if (
+          !Number.isSafeInteger(next.count) ||
+          next.count < 0 ||
+          typeof next.starred !== "boolean"
+        ) {
+          throw new Error("Invalid stars response");
+        }
+
+        render(next);
+        feedback!.textContent = `${next.count} ${next.count === 1 ? "star" : "stars"}${next.starred ? ". You starred this article." : "."}`;
+      } catch {
+        feedback!.textContent = "Could not load stars. Please try again.";
+        feedback!.classList.add("is-error");
+        if (!state) {
+          label!.textContent = "Retry stars";
+          button!.setAttribute("aria-label", "Retry loading article stars");
+        }
+      } finally {
+        button!.disabled = false;
+        button!.removeAttribute("aria-busy");
+      }
+    }
+
+    button.addEventListener("click", () => {
+      void sync(state ? !state.starred : undefined);
+    });
+
+    void sync();
+  }
+</script>
+
+<style>
+  .article-star {
+    position: fixed;
+    right: max(1.25rem, calc((100vw - 40rem) / 2 - 13.5rem));
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    z-index: 5;
+    width: 11.75rem;
+    font-family: var(--font-sans);
+  }
+
+  .article-star-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 8%);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .article-star-button:hover,
+  .article-star-button[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .article-star-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+  }
+
+  [aria-pressed="true"] svg {
+    fill: currentColor;
+  }
+
+  .article-star-count {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .article-star-feedback {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .article-star-feedback.is-error {
+    position: static;
+    display: block;
+    width: auto;
+    height: auto;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.75rem;
+    clip-path: none;
+    max-width: 11.75rem;
+  }
+
+  @media (max-width: 68rem) {
+    .article-star {
+      right: 1rem;
+      width: auto;
+    }
+
+    .article-star-button {
+      padding: 0.75rem 1rem;
+    }
+
+    [data-star-label] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+</style>

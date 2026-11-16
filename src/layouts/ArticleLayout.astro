@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
+import ArticleStar from "../components/ArticleStar.astro";
 
 interface Props {
   title: string;
@@ -36,4 +37,11 @@ const formattedDate = new Intl.DateTimeFormat("en-US", {
       Back to writing
     </a>
   </article>
+  <ArticleStar />
 </BaseLayout>
+
+<style>
+  article {
+    padding-bottom: 5rem;
+  }
+</style>
